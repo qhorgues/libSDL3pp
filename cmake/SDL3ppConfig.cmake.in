@@ -1,0 +1,95 @@
+find_package(SDL3 QUIET)
+if (NOT SDL3_FOUND)
+
+	include(FetchContent)
+	
+	message(STATUS "Download SDL3 library")
+
+	FetchContent_Declare(SDL
+		GIT_REPOSITORY "https://github.com/libsdl-org/SDL.git"
+		GIT_TAG "release-3.2.0"
+		SOURCE_DIR "SDL3"
+	)
+	FetchContent_MakeAvailable(SDL)
+
+	include_directories( ${CMAKE_BINARY_DIR}/SDL3/include)
+	set (SDL3_DIR ${CMAKE_BINARY_DIR}/SDL3)
+
+	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:${CMAKE_BINARY_DIR})
+
+	link_directories(${CMAKE_BINARY_DIR})
+endif (NOT SDL3_FOUND)
+
+if(@SDL3PP_WITH_IMAGE@)
+	find_package(SDL3_image QUIET)
+	if (NOT SDL3_image_FOUND)
+
+		include(FetchContent)
+		
+		message(STATUS "Download SDL3 image library")
+
+		FetchContent_Declare(SDL_image
+			GIT_REPOSITORY "https://github.com/libsdl-org/SDL_image.git"
+			GIT_TAG "release-3.2.0"
+			SOURCE_DIR "SDL3_image"
+		)
+		FetchContent_MakeAvailable(SDL_image)
+
+		include_directories( ${CMAKE_BINARY_DIR}/SDL3_image/include)
+		set (SDL3_image_DIR ${CMAKE_BINARY_DIR}/SDL3_image)
+
+		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:${CMAKE_BINARY_DIR})
+
+		link_directories(${CMAKE_BINARY_DIR})
+	endif (NOT SDL3_image_FOUND)
+endif()
+
+if(@SDL3PP_WITH_TTF@)
+	find_package(SDL3_ttf QUIET)
+	if (NOT SDL3_ttf_FOUND)
+
+		include(FetchContent)
+		
+		message(STATUS "Download SDL3 ttf library")
+
+		FetchContent_Declare(SDL_ttf
+			GIT_REPOSITORY "https://github.com/libsdl-org/SDL_ttf.git"
+			GIT_TAG "preview-3.1.0"
+			SOURCE_DIR "SDL3_ttf"
+		)
+		FetchContent_MakeAvailable(SDL_ttf)
+
+		include_directories( ${CMAKE_BINARY_DIR}/SDL3_ttf/include)
+		set (SDL3_ttf_DIR ${CMAKE_BINARY_DIR}/SDL3_ttf)
+
+		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:${CMAKE_BINARY_DIR})
+
+		link_directories(${CMAKE_BINARY_DIR})
+	endif (NOT SDL3_ttf_FOUND)
+endif()
+
+if(@SDL3PP_WITH_MIXER@)
+	find_package(SDL3_mixer QUIET)
+	if (NOT SDL3_mixer_FOUND)
+
+		include(FetchContent)
+		
+		message(STATUS "Download SDL3 mixer library")
+
+		FetchContent_Declare(SDL_mixer
+			GIT_REPOSITORY "https://github.com/libsdl-org/SDL_mixer.git"
+			GIT_TAG "main"
+			SOURCE_DIR "SDL3_mixer"
+		)
+		FetchContent_MakeAvailable(SDL_mixer)
+
+		include_directories( ${CMAKE_BINARY_DIR}/SDL3_mixer/include)
+		set (SDL3_mixer_DIR ${CMAKE_BINARY_DIR}/SDL3_mixer)
+
+		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}:${CMAKE_BINARY_DIR})
+
+		link_directories(${CMAKE_BINARY_DIR})
+	endif (NOT SDL3_mixer_FOUND)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/SDL3ppTargets.cmake")
