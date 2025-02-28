@@ -1,9 +1,15 @@
 #ifndef SDL3PP_WINDOW_HPP
 #define SDL3PP_WINDOW_HPP
 
-#include <SDL_video.h>
+#include <utility>
+#include <string>
+#include <string_view>
+
+
+#include <SDL3/SDL_video.h>
 #include <SDL3pp/movable_ptr.hpp>
-#include <unordered_set>
+#include <SDL3pp/observer_ptr.hpp>
+#include <SDL3pp/Point.hpp>
 
 namespace SDL3pp
 {
@@ -68,7 +74,7 @@ public:
      * - `SDL_WINDOW_TRANSPARENT`: window with transparent buffer
      * - `SDL_WINDOW_NOT_FOCUSABLE`: window should not be focusable
      *
-     * The SDL_Window is implicitly shown if SDL_WINDOW_HIDDEN is not set.
+     * The SDL3pp::Window is implicitly shown if SDL_WINDOW_HIDDEN is not set.
      *
      * On Apple's macOS, you **must** set the NSHighResolutionCapable Info.plist
      * property to YES, otherwise you will not receive a High-DPI OpenGL canvas.
@@ -87,35 +93,39 @@ public:
      * If the window is created with any of the SDL_WINDOW_OPENGL or
      * SDL_WINDOW_VULKAN flags, then the corresponding LoadLibrary function
      * (SDL_GL_LoadLibrary or SDL_Vulkan_LoadLibrary) is called and the
-     * corresponding UnloadLibrary function is called by SDL_DestroyWindow().
+     * corresponding UnloadLibrary function is called by destructor.
      *
      * If SDL_WINDOW_VULKAN is specified and there isn't a working Vulkan driver,
-     * SDL_CreateWindow() will fail, because SDL_Vulkan_LoadLibrary() will fail.
+     * constructor will fail, because SDL_Vulkan_LoadLibrary() will fail.
      *
      * If SDL_WINDOW_METAL is specified on an OS that does not support Metal,
-     * SDL_CreateWindow() will fail.
+     * constructor will fail.
      *
-     * If you intend to use this window with an SDL_Renderer, you should use
-     * SDL_CreateWindowAndRenderer() instead of this function, to avoid window
+     * If you intend to use this window with an SDL3pp::renderer, you should use
+     * SDL3pp::CreateWindowAndRenderer() instead of this function, to avoid window
      * flicker.
      *
      * On non-Apple devices, SDL requires you to either not link to the Vulkan
      * loader or link to a dynamic library version. This limitation may be removed
      * in a future version of SDL.
      *
-     * \param title the title of the window, in UTF-8 encoding.
-     * \param w the width of the window.
-     * \param h the height of the window.
-     * \param flags 0, or one or more SDL_WindowFlags OR'd together.
-     * \returns the window that was created or NULL on failure; call
-     *          SDL_GetError() for more information.
+     * @param title the title of the window, in UTF-8 encoding.
+     * @param w the width of the window.
+     * @param h the height of the window.
+     * @param flags 0, or one or more SDL_WindowFlags OR'd together.
+     * @returns the window that was created or NULL on failure; 
+     * 
+     * @exception SDL3pp::exception call exception.what() for more information about this
      *
-     * \threadsafety This function should only be called on the main thread.
+     * @threadsafety This function should only be called on the main thread.
      *
-     * \since This function is available since SDL 3.2.0.
+     * @since This function is available since SDL 3.2.0.
      */
     Window(std::string const& title, int w, int h, WindowFlags flags = 0);
+    
     Window(Window& parent, int offset_x, int offset_y, int w, int h, WindowFlags flags);
+
+    inline Window(SDL_Window* window);
 
     /**
      * @todo Implémenter le constructeur prenant un SDL_Propirties
@@ -125,19 +135,38 @@ public:
     Window& operator=(Window const&) = delete;
 
     Window(Window&&) = default;
-    Window& operator=(Window&&) = default;
+    Window& operator=(Window&&);
 
     virtual ~Window();
-    
+
+    inline std::pair<int, int> get_size() const;
+
+    inline int get_width() const;
+
+    inline int get_height() const;
+
+    inline std::pair<int, int> get_size_in_pixel() const;
+
+    inline int get_width_in_pixel() const;
+
+    inline int get_height_in_pixel() const;
+
+    inline std::string_view get_title() const;
+
+    inline void set_title(std::string const& title);
+
+    inline observer_ptr<Window> get_parent() const;
+
+    inline void set_parent(Window& parent);
+
+    inline Point get_position() const;
+
 private:
-    void clear_children();
-
     movable_ptr<SDL_Window> m_window;
-    std::unordered_set<Window&> m_children_window;
-
+    observer_ptr<Window> m_parent_window;
 };
 
 } // namespace SDL3pp
 
-#include "Window.inl"
+#include "inline_src/Window.inl"
 #endif

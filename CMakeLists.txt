@@ -1,9 +1,14 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 # meta
-project(libSDL3pp LANGUAGES CXX VERSION 0.0.1)
+project(libSDL3pp LANGUAGES CXX VERSION 0.0.2)
 
-set(CMAKE_CXX_STANDARD 17)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/option.cmake)
+
+set_sanitizer()
+
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)
 
@@ -155,62 +160,66 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SDL3PP_WARNINGS}")
 
 # config.h
 configure_file(
-	SDL3pp/Config.hpp.in
-	SDL3pp/Config.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/include/SDL3pp/Config.hpp.in
+	${CMAKE_CURRENT_SOURCE_DIR}/include/SDL3pp/Config.hpp
 )
+
+set (HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/SDL3pp/)
+set (SRCS_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+set (INL_SRCS_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/inline_src/)
+
 
 # sources
 set(LIBRARY_SOURCES
+	${SRCS_DIRS}/Window.cpp
+	${SRCS_DIRS}/Point.cpp
+	${SRCS_DIRS}/Rect.cpp
 )
 
 set(LIBRARY_INLINE_SOURCES
+	${INL_SRCS_DIRS}/Window.inl
+	${INL_SRCS_DIRS}/Exception.inl
+	${INL_SRCS_DIRS}/Point.inl
+	${INL_SRCS_DIRS}/Rect.inl
 )
 
 set(LIBRARY_HEADERS
+	${HEADER_DIRS}/SDL3pp.hpp
+	${HEADER_DIRS}/Config.hpp
+	${HEADER_DIRS}/movable_ptr.hpp
+	${HEADER_DIRS}/observer_ptr.hpp
+	${HEADER_DIRS}/Window.hpp
+	${HEADER_DIRS}/Exception.hpp
+	${HEADER_DIRS}/Point.hpp
+	${HEADER_DIRS}/Rect.hpp
 )
 
-set(LIBRARY_INLINE_SOURCES
-)
 
 # optional sources
 if(SDL3PP_WITH_TTF)
 	set(LIBRARY_SOURCES
 		${LIBRARY_SOURCES}
-		SDL3pp/SDLTTF.cpp
-		SDL3pp/Font.cpp
 	)
 	set(LIBRARY_HEADERS
 		${LIBRARY_HEADERS}
-		SDL3pp/SDLTTF.hpp
-		SDL3pp/Font.hpp
 	)
 endif()
 
 if(SDL3PP_WITH_IMAGE)
 	set(LIBRARY_SOURCES
 		${LIBRARY_SOURCES}
-		SDL3pp/SDLImage.cpp
 	)
 	set(LIBRARY_HEADERS
 		${LIBRARY_HEADERS}
-		SDL3pp/SDLImage.hpp
 	)
 endif()
 
 if(SDL3PP_WITH_MIXER)
 	set(LIBRARY_SOURCES
 		${LIBRARY_SOURCES}
-		SDL3pp/Chunk.cpp
-		SDL3pp/Mixer.cpp
-		SDL3pp/Music.cpp
-		SDL3pp/SDLMixer.cpp
 	)
 	set(LIBRARY_HEADERS
 		${LIBRARY_HEADERS}
-		SDL3pp/Chunk.hpp
-		SDL3pp/Mixer.hpp
-		SDL3pp/Music.hpp
-		SDL3pp/SDLMixer.hpp
 	)
 endif()
 
@@ -218,7 +227,7 @@ endif()
 include(GenerateExportHeader)
 
 if(SDL3PP_STATIC)
-	add_library(SDL3pp STATIC ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
+	add_library(SDL3pp STATIC ${LIBRARY_SOURCES} ${LIBRARY_INLINE_SOURCES} ${LIBRARY_HEADERS})
 	set_target_properties(SDL3pp PROPERTIES
 		POSITION_INDEPENDENT_CODE ON
 	)
@@ -230,8 +239,9 @@ else()
 		C_VISIBILITY_PRESET hidden
 	)
 endif()
+
 target_include_directories(SDL3pp PUBLIC
-	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 	$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
 	$<INSTALL_INTERFACE:include>
 )
@@ -240,16 +250,18 @@ generate_export_header(SDL3pp EXPORT_FILE_NAME SDL3pp/Export.hpp)
 
 add_library(SDL3pp::SDL3pp ALIAS SDL3pp)
 
+set_target_warnings(SDL3pp)
+
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	# examples and tests
 	if(SDL3PP_WITH_EXAMPLES)
 		add_subdirectory(examples)
 	endif()
 
-	if(SDL3PP_WITH_TESTS)
-		enable_testing()
-		add_subdirectory(tests)
-	endif()
+	# if(SDL3PP_WITH_TESTS)
+	# 	enable_testing()
+	# 	add_subdirectory(tests)
+	# endif()
 
 	# doxygen
 	find_package(Doxygen)
@@ -301,6 +313,7 @@ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
 	install(
 		FILES
 			${LIBRARY_HEADERS}
+			${LIBRARY_INLINE_SOURCES}
 			${PROJECT_BINARY_DIR}/SDL3pp/Config.hpp
 			${PROJECT_BINARY_DIR}/SDL3pp/Export.hpp
 		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SDL3pp

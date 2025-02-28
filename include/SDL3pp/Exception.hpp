@@ -12,8 +12,8 @@ class Exception : public std::runtime_error
 public:
     Exception() = delete;
 
-    explicit inline Exception(std::string const& function);
-    explicit inline Exception(const char* function);
+    explicit constexpr Exception(std::string const& function);
+    explicit constexpr Exception(const char* function);
 
     Exception(Exception const&) = default;
     Exception& operator=(Exception const&) = default;
@@ -23,8 +23,8 @@ public:
 
     virtual ~Exception() = default;
 
-    inline std::string get_sdl_function() const;
-    inline std::string get_sdl_error() const;
+    constexpr std::string get_sdl_function() const;
+    constexpr std::string get_sdl_error() const;
 private:
     static std::string make_what(std::string const& sdl_function, std::string const& sdl_error);
 
@@ -34,4 +34,5 @@ private:
 
 }
 
+#include "inline_src/Exception.inl"
 #endif
