@@ -9,6 +9,6 @@ concept range_of = std::ranges::range<T> && std::same_as<std::ranges::range_valu
 
 
 template <typename T, typename U>
-concept base_range_of = std::ranges::range<T> && std::is_base_of_v<std::ranges::range_value_t<T>, U>;
+concept derived_range_of = std::ranges::range<T> && std::derived_from<std::ranges::range_value_t<T>, U>;
 
 #endif
